@@ -2,7 +2,7 @@ package deque;
 
 import java.util.Iterator;
 
-public class LinkedListDeque<T> extends AbstractDeque<T> {
+public class LinkedListDeque<T> implements Deque<T> {
 
     private final Node<T> sentinel;
     private int size;
@@ -120,5 +120,23 @@ public class LinkedListDeque<T> extends AbstractDeque<T> {
     public T getRecursive(int index) {
         assert index >= 0;
         return getRecursiveHelper(index, sentinel.next);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Deque)) {
+            return false;
+        }
+        Iterator<?> oit = ((Deque<?>) o).iterator();
+        Iterator<T> it = iterator();
+        while (oit.hasNext() && it.hasNext()) {
+            if (!oit.next().equals(it.next())) {
+                return false;
+            }
+        }
+        return !oit.hasNext() && !it.hasNext();
     }
 }

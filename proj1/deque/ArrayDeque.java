@@ -2,7 +2,7 @@ package deque;
 
 import java.util.Iterator;
 
-public class ArrayDeque<T> extends AbstractDeque<T> {
+public class ArrayDeque<T> implements Deque<T> {
 
     private static final double FACTOR = 2;
     private int size;
@@ -110,7 +110,7 @@ public class ArrayDeque<T> extends AbstractDeque<T> {
 
     @Override
     public Iterator<T> iterator() {
-        return new Iterator<T>() {
+        return new Iterator<>() {
 
             int i = 0;
 
@@ -126,5 +126,23 @@ public class ArrayDeque<T> extends AbstractDeque<T> {
                 return item;
             }
         };
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Deque)) {
+            return false;
+        }
+        Iterator<?> oit = ((Deque<?>) o).iterator();
+        Iterator<T> it = iterator();
+        while (oit.hasNext() && it.hasNext()) {
+            if (!oit.next().equals(it.next())) {
+                return false;
+            }
+        }
+        return !oit.hasNext() && !it.hasNext();
     }
 }
