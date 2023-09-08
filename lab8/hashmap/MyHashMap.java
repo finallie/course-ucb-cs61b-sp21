@@ -47,7 +47,7 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
     private Collection<Node>[] buckets;
     private static final int DEFAULT_INITIAL_SIZE = 16;
     private int size;
-    private double loadFactor;
+    private final double loadFactor;
     private static final double DEFAULT_LOAD_FACTOR = 0.75;
     // You should probably define some more!
 
@@ -153,7 +153,7 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
         return getV(key, bucket);
     }
 
-    protected V getV(K key, Collection<Node> bucket) {
+    private V getV(K key, Collection<Node> bucket) {
         for (Node node : bucket) {
             if (node.key.equals(key)) {
                 return node.value;
@@ -200,7 +200,7 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
         }
     }
 
-    protected boolean put(K key, V value, Collection<Node> bucket) {
+    private boolean put(K key, V value, Collection<Node> bucket) {
         for (Node n : bucket) {
             if (n.key.equals(key)) {
                 n.value = value;
