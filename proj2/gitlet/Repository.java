@@ -285,9 +285,14 @@ public class Repository {
     }
 
     public static void find(String msg) {
-        getGlobalCommits().stream()
+        List<Commit> commits = getGlobalCommits().stream()
                 .filter(commit -> commit.getMessage().contains(msg))
-                .forEach(commit -> System.out.println(commit.getId()));
+                .collect(Collectors.toList());
+        commits.forEach(commit -> System.out.println(commit.getId()));
+        if (commits.isEmpty()) {
+            System.out.println("Found no commit with that message.");
+            System.exit(0);
+        }
     }
 
     private static String getId(String fileName) {
@@ -403,7 +408,8 @@ public class Repository {
 
     private static void reset(String branch, Commit commit) {
         if (!getUntrackedFiles().isEmpty()) {
-            System.out.println("There is an untracked file in the way; delete it or add it first.");
+            System.out.println("There is an untracked file in the way; delete it, "
+                    + "or add and commit it first.");
             System.exit(0);
         }
         commit.getSnapshot().forEach((fileName, id) -> {
