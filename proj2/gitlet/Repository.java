@@ -121,10 +121,10 @@ public class Repository {
         String id = saveFile(file);
         StageArea currentSnapshot = StageArea.getCurrentSnapshot();
         Commit currentCommit = Repository.getCurrentCommit();
-        fileName = file.toPath().normalize().toString();
+        fileName = getRelativeName(file);
         currentSnapshot.getRemoveStage().remove(fileName);
         if (!id.equals(currentCommit.getSnapshot().get(fileName))) {
-            currentSnapshot.getAddStage().put(file.getAbsolutePath(), id);
+            currentSnapshot.getAddStage().put(fileName, id);
         }
         currentSnapshot.save();
     }
@@ -149,7 +149,7 @@ public class Repository {
             System.out.println("No reason to remove the file.");
             System.exit(0);
         }
-        fileName = file.toPath().normalize().toString();
+        fileName = getRelativeName(file);
         StageArea currentSnapshot = StageArea.getCurrentSnapshot();
         Commit currentCommit = Repository.getCurrentCommit();
         if (currentSnapshot.getAddStage().containsKey(fileName)) {
@@ -162,6 +162,10 @@ public class Repository {
             System.exit(0);
         }
         currentSnapshot.save();
+    }
+
+    private static String getRelativeName(File file) {
+        return CWD.toPath().relativize(file.toPath()).normalize().toString();
     }
 
     private static String formatTime(Date date) {
@@ -185,12 +189,14 @@ public class Repository {
         try {
             List<String> objs = plainFilenamesIn(OBJECTS_DIR);
             if (objs == null) {
-                return null;
+                System.out.println("No commit with that id exists.");
+                System.exit(0);
             }
             String finalId = id;
             List<String> list = objs.stream().filter(obj -> obj.startsWith(finalId)).collect(Collectors.toList());
             if (list.isEmpty()) {
-                return null;
+                System.out.println("No commit with that id exists.");
+                System.exit(0);
             }
             if (list.size() > 1) {
                 throw new RuntimeException("more than one commit with id " + id);
@@ -381,6 +387,10 @@ public class Repository {
             System.out.println("No such branch exists.");
             System.exit(0);
         }
+        reset(branch, commit);
+    }
+
+    private static void reset(String branch, Commit commit) {
         if (!getUntrackedFiles().isEmpty()) {
             System.out.println("There is an untracked file in the way; delete it or add it first.");
             System.exit(0);
@@ -428,5 +438,29 @@ public class Repository {
         }
         byte[] bytes = readContents(join(OBJECTS_DIR, id));
         writeContents(join(CWD, fileName), (Object) bytes);
+    }
+
+    public static void branch(String branch) {
+        if (join(BRANCHES_DIR, branch).exists()) {
+            System.out.println("A branch with that name already exists.");
+            System.exit(0);
+        }
+        reset(branch, getCurrentCommitID());
+    }
+
+    public static void rmBranch(String branch) {
+        if (!join(BRANCHES_DIR, branch).exists()) {
+            System.out.println("A branch with that name does not exist.");
+            System.exit(0);
+        }
+        if (getCurrentBranch().equals(branch)) {
+            System.out.println("Cannot remove the current branch.");
+            System.exit(0);
+        }
+        join(BRANCHES_DIR, branch).delete();
+    }
+
+    public static void reset(String commitId) {
+        reset(getCurrentBranch(), getCommit(commitId));
     }
 }

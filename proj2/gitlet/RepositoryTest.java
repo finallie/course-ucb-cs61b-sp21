@@ -53,7 +53,7 @@ public class RepositoryTest {
 
     @Test
     public void add() {
-        Repository.add("test.txt");
+        Repository.add("pom.xml");
     }
 
     @Test
@@ -78,5 +78,42 @@ public class RepositoryTest {
     @Test
     public void find() {
         Repository.find("tes");
+    }
+
+    @Test
+    public void getBranchHead() {
+    }
+
+    @Test
+    public void getCurrentCommit() {
+    }
+
+    @Test
+    public void resetHead() {
+    }
+
+    @Test
+    public void getCommit() {
+    }
+
+    @Test
+    public void status() {
+        Repository.status();
+    }
+
+    @Test
+    public void checkout() {
+    }
+
+    @Test
+    public void getUntrackedFiles() {
+    }
+
+    @Test
+    public void branch() {
+    }
+
+    @Test
+    public void rmBranch() {
     }
 }
