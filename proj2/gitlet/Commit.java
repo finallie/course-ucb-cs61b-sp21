@@ -9,7 +9,7 @@ import static gitlet.Repository.saveObject;
 
 /**
  * Represents a gitlet commit object.
- *  does at a high level.
+ * does at a high level.
  *
  * @author niyi
  */
@@ -75,6 +75,12 @@ public class Commit implements Serializable {
         for (String fileName : currentSnapshot.getRemoveStage()) {
             commit.snapshot.remove(fileName);
         }
+        return commit;
+    }
+
+    public static Commit createCommit(String message, String parent2) {
+        Commit commit = createCommit(message);
+        commit.parent2 = parent2;
         return commit;
     }
 

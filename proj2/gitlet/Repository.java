@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import static gitlet.Utils.*;
@@ -66,7 +67,9 @@ public class Repository {
     public static Commit getBranchHead(String branch) {
         try {
             String id = readContentsAsString(join(BRANCHES_DIR, branch));
-            return readObject(join(OBJECTS_DIR, id), Commit.class);
+            Commit commit = readObject(join(OBJECTS_DIR, id), Commit.class);
+            commit.setId(id);
+            return commit;
         } catch (Exception e) {
             return null;
         }
@@ -74,7 +77,10 @@ public class Repository {
 
     public static Commit getCurrentCommit() {
         try {
-            return readObject(join(OBJECTS_DIR, getCurrentCommitID()), Commit.class);
+            String currentCommitID = getCurrentCommitID();
+            Commit commit = readObject(join(OBJECTS_DIR, currentCommitID), Commit.class);
+            commit.setId(currentCommitID);
+            return commit;
         } catch (Exception e) {
             return null;
         }
@@ -462,5 +468,129 @@ public class Repository {
 
     public static void reset(String commitId) {
         reset(getCurrentBranch(), getCommit(commitId));
+    }
+
+    public static void merge(String branch) {
+        StageArea currentSnapshot = StageArea.getCurrentSnapshot();
+        if (!currentSnapshot.getAddStage().isEmpty() || !currentSnapshot.getRemoveStage().isEmpty()) {
+            System.out.println("You have uncommitted changes.");
+            System.exit(0);
+        }
+        Commit branchHead = getBranchHead(branch);
+        if (branchHead == null) {
+            System.out.println("A branch with that name does not exist.");
+            System.exit(0);
+        }
+        if (Objects.equals(branch, getCurrentBranch())) {
+            System.out.println("Cannot merge a branch with itself.");
+            System.exit(0);
+        }
+
+
+        Commit currentCommit = getCurrentCommit();
+        Commit splitPoint = getSplitPoint(currentCommit, branchHead);
+        if (splitPoint.equals(branchHead)) {
+            System.out.println("Given branch is an ancestor of the current branch.");
+            System.exit(0);
+        }
+        if (splitPoint.equals(currentCommit)) {
+            reset(branch);
+            System.out.println("Current branch fast-forwarded.");
+            System.exit(0);
+        }
+
+        merge(splitPoint, currentCommit, branchHead, currentSnapshot, branch);
+    }
+
+    private static void merge(Commit splitPoint, Commit currentCommit, Commit branchHead,
+                              StageArea currentSnapshot, String branch) {
+        AtomicBoolean conflict = new AtomicBoolean(false);
+        branchHead.getSnapshot().forEach((fileName, id2) -> {
+            String id0 = splitPoint.getSnapshot().get(fileName);
+            String id1 = currentCommit.getSnapshot().get(fileName);
+            if (!Objects.equals(id2, id0)) {
+                if (Objects.equals(id0, id1)) {
+                    currentSnapshot.getAddStage().put(fileName, id2);
+                } else if (!Objects.equals(id1, id2)) {
+                    mergeConflict(fileName, id1, id2, currentSnapshot);
+                    conflict.set(true);
+                }
+            }
+        });
+        currentCommit.getSnapshot().forEach((fileName, id1) -> {
+            String id0 = splitPoint.getSnapshot().get(fileName);
+            String id2 = branchHead.getSnapshot().get(fileName);
+            if (id0 != null && !Objects.equals(id0, id1) && id2 == null) {
+                mergeConflict(fileName, id1, null, currentSnapshot);
+                conflict.set(true);
+            }
+            if (id1.equals(id0) && id2 == null) {
+                currentSnapshot.getRemoveStage().add(fileName);
+            }
+        });
+
+        TreeSet<String> untrackedFiles = getUntrackedFiles();
+        currentSnapshot.getAddStage().forEach((fileName, id) -> {
+            if (untrackedFiles.contains(fileName)) {
+                System.out.println("There is an untracked file in the way; delete it or add it first.");
+                System.exit(0);
+            }
+        });
+        currentSnapshot.getRemoveStage().forEach(fileName -> {
+            if (untrackedFiles.contains(fileName)) {
+                System.out.println("There is an untracked file in the way; delete it or add it first.");
+                System.exit(0);
+            }
+        });
+
+        currentSnapshot.getAddStage().forEach((fileName, id) -> {
+            byte[] bytes = readContents(join(OBJECTS_DIR, id));
+            writeContents(join(CWD, fileName), (Object) bytes);
+        });
+        currentSnapshot.getRemoveStage().forEach(fileName -> {
+            restrictedDelete(join(CWD, fileName));
+        });
+
+        Commit commit = Commit.createCommit("Merged " + branch + "into " + getCurrentBranch(), branchHead.getId());
+        commit.commit();
+        if (conflict.get()) {
+            System.out.println("Encountered a merge conflict.");
+        }
+    }
+
+    private static void mergeConflict(String fileName, String id1, String id2, StageArea currentSnapshot) {
+        String content1 = id1 == null ? "" : readContentsAsString(join(OBJECTS_DIR, id1));
+        String content2 = id2 == null ? "" : readContentsAsString(join(OBJECTS_DIR, id2));
+        String content = "<<<<<<< HEAD\n" + content1 + "=======\n" + content2 + ">>>>>>>";
+        byte[] bytes = content.getBytes();
+        String id = sha1((Object) bytes);
+        writeContents(join(OBJECTS_DIR, id), (Object) bytes);
+        currentSnapshot.getAddStage().put(fileName, id);
+    }
+
+    private static Commit getSplitPoint(Commit currentCommit, Commit branchHead) {
+        if (currentCommit.equals(branchHead)) {
+            return currentCommit;
+        }
+        PriorityQueue<Commit> pq = new PriorityQueue<>((a, b) -> b.getDate().compareTo(a.getDate()));
+        pq.offer(currentCommit);
+        pq.offer(branchHead);
+        HashSet<String> set = new HashSet<>();
+        set.add(currentCommit.getId());
+        set.add(branchHead.getId());
+        while (pq.size() > 1) {
+            Commit poll = pq.poll();
+            if (poll.getParent() != null && !set.contains(poll.getParent())) {
+                Commit parent = getCommit(poll.getParent());
+                pq.offer(parent);
+                set.add(parent.getId());
+            }
+            if (poll.getParent2() != null && !set.contains(poll.getParent2())) {
+                Commit parent = getCommit(poll.getParent2());
+                pq.offer(parent);
+                set.add(parent.getId());
+            }
+        }
+        return pq.poll();
     }
 }
