@@ -103,6 +103,7 @@ public class RepositoryTest {
 
     @Test
     public void checkout() {
+        Repository.checkout(new String[]{"--", "1.txt"});
     }
 
     @Test

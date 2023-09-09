@@ -348,27 +348,27 @@ public class Repository {
     }
 
     public static void checkout(String[] args) {
-        if (args.length > 3 || args.length == 0) {
+        if (args.length > 4 || args.length < 2) {
             System.out.println("Incorrect operands.");
             System.exit(0);
         }
         String commitID = null, fileName = null, branch = null;
-        if (args.length == 3) {
+        if (args.length == 4) {
+            if (!args[2].equals("--")) {
+                System.out.println("Incorrect operands.");
+                System.exit(0);
+            }
+            commitID = args[1];
+            fileName = args[3];
+        } else if (args.length == 3) {
             if (!args[1].equals("--")) {
                 System.out.println("Incorrect operands.");
                 System.exit(0);
             }
-            commitID = args[0];
-            fileName = args[2];
-        } else if (args.length == 2) {
-            if (!args[0].equals("--")) {
-                System.out.println("Incorrect operands.");
-                System.exit(0);
-            }
             commitID = getCurrentCommitID();
-            fileName = args[1];
+            fileName = args[2];
         } else {
-            branch = args[0];
+            branch = args[1];
         }
         if (branch == null) {
             checkoutFile(commitID, fileName);
