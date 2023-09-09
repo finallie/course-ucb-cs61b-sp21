@@ -151,10 +151,6 @@ public class Repository {
 
     public static void rm(String fileName) {
         File file = join(CWD, fileName);
-        if (!file.exists()) {
-            System.out.println("No reason to remove the file.");
-            System.exit(0);
-        }
         fileName = getRelativeName(file);
         StageArea currentSnapshot = StageArea.getCurrentSnapshot();
         Commit currentCommit = Repository.getCurrentCommit();
@@ -323,11 +319,11 @@ public class Repository {
                 untracked.add(fileName);
             } else if (currentSnapshot.getAddStage().containsKey(fileName)) {
                 if (!currentSnapshot.getAddStage().get(fileName).equals(getId(fileName))) {
-                    modified.add(fileName + (modified));
+                    modified.add(fileName + " (modified)");
                 }
             } else if (currentCommit.getSnapshot().containsKey(fileName)) {
                 if (!currentCommit.getSnapshot().get(fileName).equals(getId(fileName))) {
-                    modified.add(fileName + (modified));
+                    modified.add(fileName + " (modified)");
                 }
             } else {
                 untracked.add(fileName);
@@ -339,7 +335,7 @@ public class Repository {
             }
         }
         for (String oldFile : currentCommit.getSnapshot().keySet()) {
-            if (!allWorkdirFiles.contains(oldFile)) {
+            if (!allWorkdirFiles.contains(oldFile) && !currentSnapshot.getRemoveStage().contains(oldFile)) {
                 modified.add(oldFile + " (deleted)");
             }
         }
