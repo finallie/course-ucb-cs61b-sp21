@@ -342,7 +342,8 @@ public class Repository {
             }
         }
         for (String oldFile : currentCommit.getSnapshot().keySet()) {
-            if (!allWorkdirFiles.contains(oldFile) && !currentSnapshot.getRemoveStage().contains(oldFile)) {
+            if (!allWorkdirFiles.contains(oldFile)
+                    && !currentSnapshot.getRemoveStage().contains(oldFile)) {
                 modified.add(oldFile + " (deleted)");
             }
         }
@@ -475,7 +476,8 @@ public class Repository {
 
     public static void merge(String branch) {
         StageArea currentSnapshot = StageArea.getCurrentSnapshot();
-        if (!currentSnapshot.getAddStage().isEmpty() || !currentSnapshot.getRemoveStage().isEmpty()) {
+        if (!currentSnapshot.getAddStage().isEmpty()
+                || !currentSnapshot.getRemoveStage().isEmpty()) {
             System.out.println("You have uncommitted changes.");
             System.exit(0);
         }
@@ -535,13 +537,15 @@ public class Repository {
         TreeSet<String> untrackedFiles = getUntrackedFiles();
         currentSnapshot.getAddStage().forEach((fileName, id) -> {
             if (untrackedFiles.contains(fileName)) {
-                System.out.println("There is an untracked file in the way; delete it or add it first.");
+                System.out.println("There is an untracked file in the way;" +
+                        " delete it or add it first.");
                 System.exit(0);
             }
         });
         currentSnapshot.getRemoveStage().forEach(fileName -> {
             if (untrackedFiles.contains(fileName)) {
-                System.out.println("There is an untracked file in the way; delete it or add it first.");
+                System.out.println("There is an untracked file in the way; " +
+                        "delete it or add it first.");
                 System.exit(0);
             }
         });
@@ -554,14 +558,16 @@ public class Repository {
             restrictedDelete(join(CWD, fileName));
         });
 
-        Commit commit = Commit.createCommit("Merged " + branch + "into " + getCurrentBranch(), branchHead.getId());
+        Commit commit = Commit.createCommit("Merged " + branch
+                + "into " + getCurrentBranch(), branchHead.getId());
         commit.commit();
         if (conflict.get()) {
             System.out.println("Encountered a merge conflict.");
         }
     }
 
-    private static void mergeConflict(String fileName, String id1, String id2, StageArea currentSnapshot) {
+    private static void mergeConflict(String fileName, String id1, String id2,
+                                      StageArea currentSnapshot) {
         String content1 = id1 == null ? "" : readContentsAsString(join(OBJECTS_DIR, id1));
         String content2 = id2 == null ? "" : readContentsAsString(join(OBJECTS_DIR, id2));
         String content = "<<<<<<< HEAD\n" + content1 + "=======\n" + content2 + ">>>>>>>";
@@ -575,7 +581,8 @@ public class Repository {
         if (currentCommit.equals(branchHead)) {
             return currentCommit;
         }
-        PriorityQueue<Commit> pq = new PriorityQueue<>((a, b) -> b.getDate().compareTo(a.getDate()));
+        PriorityQueue<Commit> pq = new PriorityQueue<>(
+                (a, b) -> b.getDate().compareTo(a.getDate()));
         pq.offer(currentCommit);
         pq.offer(branchHead);
         HashSet<String> set = new HashSet<>();
