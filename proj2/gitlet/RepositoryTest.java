@@ -17,7 +17,8 @@ public class RepositoryTest {
     @Test
     public void getCurrentCommitID() {
         String currentCommitID = Repository.getCurrentCommitID();
-        Commit commit = Utils.readObject(Utils.join(Repository.OBJECTS_DIR, currentCommitID), Commit.class);
+        Commit commit = Utils.readObject(
+                Utils.join(Repository.OBJECTS_DIR, currentCommitID), Commit.class);
         StageArea currentSnapshot = StageArea.getCurrentSnapshot();
         System.out.println("");
     }
@@ -34,7 +35,8 @@ public class RepositoryTest {
     @Test
     public void saveObject() {
         String id = Repository.saveObject("hello");
-        assertEquals(Utils.readObject(Utils.join(Repository.OBJECTS_DIR, id), String.class), "hello");
+        assertEquals(Utils.readObject(
+                Utils.join(Repository.OBJECTS_DIR, id), String.class), "hello");
     }
 
     @Test
@@ -45,7 +47,8 @@ public class RepositoryTest {
             Utils.writeContents(file, "hello");
             String id = Repository.saveFile(file);
             System.out.println(id);
-            assertEquals(Utils.readContentsAsString(Utils.join(Repository.OBJECTS_DIR, id)), "hello");
+            assertEquals(Utils.readContentsAsString(
+                    Utils.join(Repository.OBJECTS_DIR, id)), "hello");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

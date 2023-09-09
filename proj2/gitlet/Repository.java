@@ -195,7 +195,8 @@ public class Repository {
                 System.exit(0);
             }
             String finalId = id;
-            List<String> list = objs.stream().filter(obj -> obj.startsWith(finalId)).collect(Collectors.toList());
+            List<String> list = objs.stream()
+                    .filter(obj -> obj.startsWith(finalId)).collect(Collectors.toList());
             if (list.isEmpty()) {
                 System.out.println("No commit with that id exists.");
                 System.exit(0);
@@ -537,15 +538,15 @@ public class Repository {
         TreeSet<String> untrackedFiles = getUntrackedFiles();
         currentSnapshot.getAddStage().forEach((fileName, id) -> {
             if (untrackedFiles.contains(fileName)) {
-                System.out.println("There is an untracked file in the way;" +
-                        " delete it or add it first.");
+                System.out.println("There is an untracked file in the way;"
+                        + " delete it or add it first.");
                 System.exit(0);
             }
         });
         currentSnapshot.getRemoveStage().forEach(fileName -> {
             if (untrackedFiles.contains(fileName)) {
-                System.out.println("There is an untracked file in the way; " +
-                        "delete it or add it first.");
+                System.out.println("There is an untracked file in the way; "
+                        + "delete it or add it first.");
                 System.exit(0);
             }
         });
