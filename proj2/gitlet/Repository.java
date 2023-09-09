@@ -247,13 +247,20 @@ public class Repository {
     }
 
     private static List<Commit> getGlobalCommits() {
-        ArrayDeque<Commit> queue = new ArrayDeque<>();
-        for (String branch : getAllBranches()) {
-            Commit commit = getBranchHead(branch);
-            commit.setId(readContentsAsString(join(BRANCHES_DIR, branch)));
-            queue.add(commit);
+        List<String> files = plainFilenamesIn(OBJECTS_DIR);
+        if (files == null) {
+            return Collections.emptyList();
         }
-        return getAllCommits(queue);
+        return files.stream().map(id -> {
+                    try {
+                        Commit commit = readObject(join(OBJECTS_DIR, id), Commit.class);
+                        commit.setId(id);
+                        return commit;
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull).collect(Collectors.toList());
     }
 
     private static List<String> getAllBranches() {
