@@ -306,6 +306,10 @@ public class Repository {
     }
 
     public static void status() {
+        if (!GITLET_DIR.exists()) {
+            System.out.println("Not in an initialized Gitlet directory.");
+            System.exit(0);
+        }
         StageArea currentSnapshot = StageArea.getCurrentSnapshot();
         Commit currentCommit = Repository.getCurrentCommit();
 
@@ -511,7 +515,7 @@ public class Repository {
             System.exit(0);
         }
         if (splitPoint.equals(currentCommit)) {
-            reset(branch);
+            reset(getCurrentBranch(), branchHead);
             System.out.println("Current branch fast-forwarded.");
             System.exit(0);
         }

@@ -130,7 +130,8 @@ public class Commit implements Serializable {
         snapshot.forEach((k, v) -> {
             if (k.endsWith(".txt") && !k.contains("wug")) {
                 System.out.println(
-                        k + ": " + Utils.readContentsAsString(Utils.join(Repository.OBJECTS_DIR, v)));
+                        k + ": " + Utils.readContentsAsString(
+                                Utils.join(Repository.OBJECTS_DIR, v)));
             }
         });
         System.out.println();

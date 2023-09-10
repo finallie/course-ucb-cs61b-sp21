@@ -102,7 +102,7 @@ public class RepositoryTest {
 
     @Test
     public void status() {
-        Repository.merge("c1");
+        Repository.merge("master");
         Repository.status();
     }
 
@@ -121,8 +121,8 @@ public class RepositoryTest {
         Repository.getBranchHead("b1").debug();
         System.out.println("b2:");
         Repository.getBranchHead("b2").debug();
-        System.out.println("c1:");
-        Repository.getBranchHead("c1").debug();
+        System.out.println("master:");
+        Repository.getBranchHead("master").debug();
     }
 
     @Test
