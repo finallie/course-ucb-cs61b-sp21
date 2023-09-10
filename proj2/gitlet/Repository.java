@@ -240,7 +240,7 @@ public class Repository {
         System.out.printf("commit %s\n", commit.getId());
         if (commit.getParent2() != null) {
             System.out.printf("Merge: %s %s\n",
-                    commit.getParent().substring(0, 6), commit.getParent2().substring(0, 6));
+                    commit.getParent().substring(0, 7), commit.getParent2().substring(0, 7));
         }
         System.out.printf("Date: %s\n", formatTime(commit.getDate()));
         System.out.println(commit.getMessage());
@@ -565,8 +565,9 @@ public class Repository {
             restrictedDelete(join(CWD, fileName));
         });
 
+        currentSnapshot.save();
         Commit commit = Commit.createCommit("Merged " + branch
-                + "into " + getCurrentBranch(), branchHead.getId());
+                + " into " + getCurrentBranch() + ".", branchHead.getId());
         commit.commit();
         if (conflict.get()) {
             System.out.println("Encountered a merge conflict.");
@@ -577,7 +578,7 @@ public class Repository {
                                       StageArea currentSnapshot) {
         String content1 = id1 == null ? "" : readContentsAsString(join(OBJECTS_DIR, id1));
         String content2 = id2 == null ? "" : readContentsAsString(join(OBJECTS_DIR, id2));
-        String content = "<<<<<<< HEAD\n" + content1 + "=======\n" + content2 + ">>>>>>>";
+        String content = "<<<<<<< HEAD\n" + content1 + "=======\n" + content2 + ">>>>>>>\n";
         byte[] bytes = content.getBytes();
         String id = sha1((Object) bytes);
         writeContents(join(OBJECTS_DIR, id), (Object) bytes);
