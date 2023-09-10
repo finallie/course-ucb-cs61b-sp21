@@ -182,9 +182,14 @@ public class Repository {
             return;
         }
         commit.setId(getCurrentCommitID());
+        List<Commit> allCommits = getCommitList(commit);
+        allCommits.forEach(Repository::log);
+    }
+
+    private static List<Commit> getCommitList(Commit commit) {
         ArrayDeque<Commit> queue = new ArrayDeque<>();
         queue.add(commit);
-        getAllCommits(queue).forEach(Repository::log);
+        return getAllCommits(queue);
     }
 
     public static Commit getCommit(String id) {
@@ -545,14 +550,14 @@ public class Repository {
         currentSnapshot.getAddStage().forEach((fileName, id) -> {
             if (untrackedFiles.contains(fileName)) {
                 System.out.println("There is an untracked file in the way;"
-                        + " delete it or add it first.");
+                        + " delete it, or add and commit it first.");
                 System.exit(0);
             }
         });
         currentSnapshot.getRemoveStage().forEach(fileName -> {
             if (untrackedFiles.contains(fileName)) {
                 System.out.println("There is an untracked file in the way; "
-                        + "delete it or add it first.");
+                        + "delete it, or add and commit it first.");
                 System.exit(0);
             }
         });
@@ -589,26 +594,13 @@ public class Repository {
         if (currentCommit.equals(branchHead)) {
             return currentCommit;
         }
-        PriorityQueue<Commit> pq = new PriorityQueue<>(
-                (a, b) -> b.getDate().compareTo(a.getDate()));
-        pq.offer(currentCommit);
-        pq.offer(branchHead);
-        HashSet<String> set = new HashSet<>();
-        set.add(currentCommit.getId());
-        set.add(branchHead.getId());
-        while (pq.size() > 1) {
-            Commit poll = pq.poll();
-            if (poll.getParent() != null && !set.contains(poll.getParent())) {
-                Commit parent = getCommit(poll.getParent());
-                pq.offer(parent);
-                set.add(parent.getId());
-            }
-            if (poll.getParent2() != null && !set.contains(poll.getParent2())) {
-                Commit parent = getCommit(poll.getParent2());
-                pq.offer(parent);
-                set.add(parent.getId());
+        HashSet<Commit> commitList = new HashSet<>(getCommitList(currentCommit));
+        List<Commit> commitList1 = getCommitList(branchHead);
+        for (Commit commit : commitList1) {
+            if (commitList.contains(commit)) {
+                return commit;
             }
         }
-        return pq.poll();
+        return null;
     }
 }

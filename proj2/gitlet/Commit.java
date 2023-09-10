@@ -123,4 +123,17 @@ public class Commit implements Serializable {
         }
         return id.equals(((Commit) obj).id);
     }
+
+    public void debug() {
+        System.out.println("Commit id: " + id);
+        System.out.println("Commit message: " + message);
+        snapshot.forEach((k, v) -> {
+            if (k.endsWith(".txt") && !k.contains("wug")) {
+                System.out.println(
+                        k + ": " + Utils.readContentsAsString(Utils.join(Repository.OBJECTS_DIR, v)));
+            }
+        });
+        System.out.println();
+
+    }
 }

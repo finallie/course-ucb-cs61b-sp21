@@ -89,6 +89,7 @@ public class RepositoryTest {
 
     @Test
     public void getCurrentCommit() {
+        Repository.getCurrentCommit().debug();
     }
 
     @Test
@@ -101,6 +102,7 @@ public class RepositoryTest {
 
     @Test
     public void status() {
+        Repository.merge("c1");
         Repository.status();
     }
 
@@ -115,6 +117,12 @@ public class RepositoryTest {
 
     @Test
     public void branch() {
+        System.out.println("b1:");
+        Repository.getBranchHead("b1").debug();
+        System.out.println("b2:");
+        Repository.getBranchHead("b2").debug();
+        System.out.println("c1:");
+        Repository.getBranchHead("c1").debug();
     }
 
     @Test
